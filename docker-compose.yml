@@ -1,0 +1,35 @@
+# version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: shop_db
+    restart: always
+    environment:
+      OPEN_API_KEY: ${OPEN_API_KEY}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 99
+      POSTGRES_DB: shop_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    container_name: shop_api
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "3001:3000"
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./uploads:/app/uploads
+    command: sh -c "npx wait-on tcp:db:5432 && npm run dev"
+
+volumes:
+  db_data:

@@ -1,0 +1,619 @@
+openapi: 3.0.1
+info:
+  title: Shop API
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001/api
+paths:
+  /auth/register:
+    post:
+      summary: "Register user"
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+      responses:
+        200:
+          description: User created
+  /auth/login:
+    post:
+      summary: "Login user"
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Logged in, token returned
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Get all users (ADMIN)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Users list
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+  /categories:
+    get:
+      summary: "Get all categories"
+      tags:
+        - Categories
+      parameters:
+        - in: query
+          name: lang
+          required: false
+          schema:
+            type: string
+            enum: [uz-Latn, uz-Cyrl, ru]
+          example: uz-Latn
+      responses:
+        "200":
+          description: Categories list
+    post:
+      summary: "Create category (ADMIN)"
+      tags: [Categories]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  example: Elektronika
+                sourceLang:
+                  type: string
+                  enum: [uz-Latn, uz-Cyrl, ru]
+                  example: uz-Latn
+      responses:
+        "201":
+          description: Category created
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+  /categories/{id}:
+    put:
+      summary: "Update category (ADMIN)"
+      tags:
+        - Categories
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  example: Phones
+                sourceLang:
+                  type: string
+                  enum: [uz-Latn, uz-Cyrl, ru]
+                  example: uz-Latn
+      responses:
+        "200":
+          description: Category updated
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+    delete:
+      summary: "Delete category (ADMIN)"
+      tags:
+        - Categories
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Category deleted
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+  /brands:
+    get:
+      summary: "Get all brands"
+      tags:
+        - Brands
+      parameters:
+        - in: query
+          name: lang
+          required: false
+          schema:
+            type: string
+            enum: [uz-Latn, uz-Cyrl, ru]
+          example: uz-Latn
+      responses:
+        "200":
+          description: Brands list
+    post:
+      summary: "Create brand (ADMIN)"
+      tags:
+        - Brands
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  example: Apple
+                sourceLang:
+                  type: string
+                  enum: [uz-Latn, uz-Cyrl, ru]
+                  example: uz-Latn
+      responses:
+        "201":
+          description: Brand created
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
+  /brands/{id}:
+    put:
+      summary: "Update brand (ADMIN)"
+      tags:
+        - Brands
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  example: Samsung
+                sourceLang:
+                  type: string
+                  enum: [uz-Latn, uz-Cyrl, ru]
+                  example: ru
+      responses:
+        "200":
+          description: Brand updated
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+    delete:
+      summary: "Delete brand (ADMIN)"
+      tags:
+        - Brands
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Brand deleted
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+  /products:
+    get:
+      summary: "Get all products (filter/sort/search/pagination)"
+      tags:
+        - Product
+      parameters:
+        - in: query
+          name: lang
+          required: false
+          schema:
+            type: string
+            enum: [uz-Latn, uz-Cyrl, ru]
+          example: uz-Latn
+
+        - in: query
+          name: brandId
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+
+        - in: query
+          name: categoryId
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          example: 2
+
+        - in: query
+          name: search
+          required: false
+          schema:
+            type: string
+          example: iphone
+
+        - in: query
+          name: minPrice
+          required: false
+          schema:
+            type: number
+            minimum: 0
+          example: 100
+
+        - in: query
+          name: maxPrice
+          required: false
+          schema:
+            type: number
+            minimum: 0
+          example: 2000
+
+        - in: query
+          name: inStock
+          required: false
+          schema:
+            type: boolean
+          example: true
+
+        - in: query
+          name: sort
+          required: false
+          schema:
+            type: string
+            enum:
+              - createdAt_desc
+              - createdAt_asc
+              - price_asc
+              - price_desc
+              - stock_asc
+              - stock_desc
+          example: createdAt_desc
+
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
+
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          example: 20
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of products
+    post:
+      summary: "Create product (ADMIN)"
+      tags:
+        - Product
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - price
+                - stock
+                - categoryIds
+              properties:
+                name:
+                  type: string
+                  example: iPhone 15
+                description:
+                  type: string
+                  example: Yangi model, 128GB
+                sourceLang:
+                  type: string
+                  enum: [uz-Latn, uz-Cyrl, ru]
+                  example: uz-Latn
+                price:
+                  type: number
+                  example: 999.99
+                stock:
+                  type: number
+                  example: 10
+                categoryIds:
+                  type: array
+                  items:
+                    type: integer
+                  example: [1, 2]
+                brandId:
+                  type: integer
+                  example: 1
+                image:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Product created
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+  /orders:
+    post:
+      summary: "Create order (USER/ADMIN)"
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - items
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - productId
+                      - quantity
+                    properties:
+                      productId:
+                        type: integer
+                        example: 1
+                      quantity:
+                        type: integer
+                        example: 2
+      responses:
+        "201":
+          description: Order created
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Some products not found
+  /orders/me:
+    get:
+      summary: "Get my orders (USER/ADMIN)"
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: My orders
+        "401":
+          description: Unauthorized
+  /orders/{id}/status:
+    patch:
+      summary: "Update order status (ADMIN)"
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [PENDING, PAID, CANCELED]
+                  example: PAID
+      responses:
+        "200":
+          description: Updated order
+        "400":
+          description: Invalid status
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+  /orders/{id}:
+    delete:
+      summary: "Delete order (ADMIN)"
+      tags:
+        - Orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order deleted
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found 
+  /products/{id}:
+    get:
+      tags:
+        - Product
+      summary: Get product by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: lang
+          required: false
+          schema:
+            type: string
+            enum: [uz-Latn, uz-Cyrl, ru]
+          example: ru
+      responses:
+        "200":
+          description: Product info
+    put:
+      tags:
+        - Product
+      summary: Update product (ADMIN)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: iPhone 15 Pro
+                description:
+                  type: string
+                  example: Titanium корпус
+                sourceLang:
+                  type: string
+                  enum: [uz-Latn, uz-Cyrl, ru]
+                  example: ru
+                price:
+                  type: number
+                  example: 1099.99
+                stock:
+                  type: number
+                  example: 8
+                categoryIds:
+                  type: array
+                  items:
+                    type: integer
+                  example: [1, 2]
+                brandId:
+                  type: integer
+                  example: 1
+                image:
+                  type: string
+                  example: /uploads/file.jpg
+      responses:
+        "200":
+          description: Product updated
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+    delete:
+      tags:
+        - Products
+      summary: Delete product (ADMIN)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product deleted
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden   
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

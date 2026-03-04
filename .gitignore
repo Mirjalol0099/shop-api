@@ -1,0 +1,15 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+# npm install packages
+
+#sudo docker compose down -v
+
+# sudo docker compose up --build
+
+# npm run dev
+
+/src/generated/prisma
+node_modules/
+.env
